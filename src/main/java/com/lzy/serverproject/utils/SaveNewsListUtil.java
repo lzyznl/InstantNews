@@ -116,10 +116,4 @@ public class SaveNewsListUtil {
         // 将JSON字符串写入文件
         FileUtil.writeUtf8String(jsonStr, JSON_FILE_PATH);
     }
-
-    public static void main(String[] args) {
-        List<News> japaneseNewsList = GetNewsListUtil.getJapaneseNewsList(NewsConstant.ECONOMY);
-        GetNewsContentUtil.getNewsContent(japaneseNewsList,false);
-        save(japaneseNewsList,false,NewsFileConstant.ChineseNewsType_ECONOMY);
-    }
 }
