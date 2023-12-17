@@ -2,7 +2,7 @@ package com.lzy.serverproject.utils;
 
 import com.google.gson.Gson;
 import com.lzy.serverproject.constant.NewsConstant;
-import com.lzy.serverproject.model.News;
+import com.lzy.serverproject.model.entity.News;
 import com.lzy.serverproject.model.translate.translateResult;
 import com.lzy.serverproject.utils.translate.TransApi;
 import lombok.Data;

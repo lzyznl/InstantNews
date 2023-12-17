@@ -6,9 +6,11 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.lzy.serverproject.Service.NewsService;
 import com.lzy.serverproject.constant.NewsFileConstant;
-import com.lzy.serverproject.model.News;
+import com.lzy.serverproject.model.entity.News;
 import com.lzy.serverproject.model.enums.newsTypeEnum;
+import com.lzy.serverproject.model.vo.getNewsVo;
 import com.lzy.serverproject.utils.SaveNewsListUtil;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,15 +18,19 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Service
 public class NewsServiceImpl implements NewsService {
 
 
     @Override
-    public List<News> getNews(int newsType, int newsLange, String newsTime, int initSize, int addSize) {
+    public getNewsVo getNews(int newsType, int newsLange, String newsTime, int initSize, int addSize, int currentNewsNum) {
         List<News> newsList = new ArrayList<>();
         newsTypeEnum newsEnum = newsTypeEnum.getEnumByValue(newsType);
+        getNewsVo getNewsVo = new getNewsVo();
         if(newsEnum==null){
-            return newsList;
+            getNewsVo.setNewsList(newsList);
+            getNewsVo.setNewsSize(0);
+            return getNewsVo;
         }
         String type = newsEnum.getText();
         boolean isChinese = newsLange != 0;
@@ -36,22 +42,40 @@ public class NewsServiceImpl implements NewsService {
             path = getPath(type, newsTime, false);
         }
         if(path.equals("")){
-            return newsList;
+            getNewsVo.setNewsList(newsList);
+            getNewsVo.setNewsSize(0);
+            return getNewsVo;
         }
         //读取该文件中的所有内容
         List<News> newsLists = readJsonFile(path);
-        //todo size这里还需要再确定一下
-        return null;
+        //处理读取到的数据然后进行返回
+        List<News> subList = null;
+        if(initSize!=0){
+            //初次加载
+            subList = getSubList(newsLists, 0, initSize);
+        }else if(addSize!=0&currentNewsNum!=0){
+            //动态加载
+            subList = getSubList(newsLists,(currentNewsNum-1),addSize);
+        }
+        getNewsVo.setNewsList(subList);
+        getNewsVo.setNewsSize(subList.size());
+        return getNewsVo;
     }
 
-    public static List<News> getSubList(List<News> originalList, int sum) {
-        if (originalList.size() <= sum) {
-            // 如果原始列表大小小于或等于sum，返回整个原始列表
-            return originalList;
-        } else {
-            // 使用subList截取前sum个元素
-            return originalList.subList(0, sum);
+    public static List<News> getSubList(List<News> originalList, int start,int num) {
+        // 检查开始位置是否有效
+        if (start < 0 || start >= originalList.size()) {
+            throw new IllegalArgumentException("Invalid start position");
         }
+
+        // 计算结束位置
+        int end = Math.min(start + num, originalList.size());
+
+        // 使用subList方法获取子列表
+        List<News> subList = originalList.subList(start, end);
+
+        // 创建新的ArrayList，将子列表的元素添加到新列表中
+        return new ArrayList<>(subList);
     }
 
     /**
@@ -76,6 +100,7 @@ public class NewsServiceImpl implements NewsService {
             news.setNewsContent(jsonObj.getStr("newsContent"));
             news.setNewsTime(jsonObj.getStr("newsTime"));
             news.setNewsLink(jsonObj.getStr("newsLink"));
+            news.setNewsImage(jsonObj.getStr("newsImage"));
             newsList.add(news);
         }
 
@@ -94,7 +119,7 @@ public class NewsServiceImpl implements NewsService {
             newsFilePath=projectFilePath+ File.separator+ NewsFileConstant.TotalNewsFileDir+File.separator+NewsFileConstant.JapaneseNewsFileDir
                     +File.separator+type;
         }
-        if(newsTime!=null){
+        if(!newsTime.equals("")){
             if(!isValidDateFormat(newsTime)){
                 return "";
             }

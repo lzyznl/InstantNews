@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzy.serverproject.mapper.DayNewsNumMapper">
+
+    <resultMap id="BaseResultMap" type="com.lzy.serverproject.model.entity.DayNewsNum">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="dayTime" column="dayTime" jdbcType="VARCHAR"/>
+            <result property="liveNum" column="liveNum" jdbcType="INTEGER"/>
+            <result property="economyNum" column="economyNum" jdbcType="INTEGER"/>
+            <result property="geoNum" column="geoNum" jdbcType="INTEGER"/>
+            <result property="interiorNum" column="interiorNum" jdbcType="INTEGER"/>
+            <result property="interNationalNum" column="interNationalNum" jdbcType="INTEGER"/>
+            <result property="ITNum" column="ITNum" jdbcType="INTEGER"/>
+            <result property="physicalNum" column="physicalNum" jdbcType="INTEGER"/>
+            <result property="recreationNum" column="recreationNum" jdbcType="INTEGER"/>
+            <result property="scienceNum" column="scienceNum" jdbcType="INTEGER"/>
+            <result property="allNum" column="allNum" jdbcType="BIGINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,dayTime,liveNum,
+        economyNum,geoNum,interiorNum,
+        interNationalNum,ITNum,physicalNum,
+        recreationNum,scienceNum,allNum,
+        createTime,updateTime
+    </sql>
+</mapper>

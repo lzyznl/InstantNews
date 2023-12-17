@@ -3,9 +3,8 @@ package com.lzy.serverproject.utils;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
-import com.lzy.serverproject.constant.NewsConstant;
 import com.lzy.serverproject.constant.NewsFileConstant;
-import com.lzy.serverproject.model.News;
+import com.lzy.serverproject.model.entity.News;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;

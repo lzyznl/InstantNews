@@ -7,13 +7,13 @@ public interface NewsFileConstant {
     String TotalNewsFileDir = "News";
     String ChineseNewsFileDir = "Chinese_News_Dir";
     String JapaneseNewsFileDir = "Japanese_News_Dir";
-    String ChineseNewsType_LIVE = "live";
-    String ChineseNewsType_INTERIOR = "interior";
-    String ChineseNewsType_INTERNATIONAL = "international";
-    String ChineseNewsType_ECONOMY = "economy";
-    String ChineseNewsType_RECREATION = "reaction";
-    String ChineseNewsType_PHYSICAL = "physical";
-    String ChineseNewsType_IT = "it";
-    String ChineseNewsType_SCIENCE = "science";
-    String ChineseNewsType_GEO = "geo";
+    String NewsType_LIVE = "live";
+    String NewsType_INTERIOR = "interior";
+    String NewsType_INTERNATIONAL = "international";
+    String NewsType_ECONOMY = "economy";
+    String NewsType_RECREATION = "recreation";
+    String NewsType_PHYSICAL = "physical";
+    String NewsType_IT = "it";
+    String NewsType_SCIENCE = "science";
+    String NewsType_GEO = "geo";
 }

@@ -1,6 +1,7 @@
 package com.lzy.serverproject.model.enums;
 
 import com.lzy.serverproject.constant.NewsConstant;
+import com.lzy.serverproject.constant.NewsFileConstant;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Arrays;
@@ -8,15 +9,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public enum newsTypeEnum {
-    LIVE(NewsConstant.LIVE,0),
-    INTERIOR(NewsConstant.INTERIOR,1),
-    INTERNATIONAL(NewsConstant.INTERNATIONAL,2),
-    ECONOMY(NewsConstant.ECONOMY,3),
-    RECREATION(NewsConstant.RECREATION,4),
-    PHYSICAL(NewsConstant.PHYSICAL,5),
-    IT(NewsConstant.IT,6),
-    SCIENCE(NewsConstant.SCIENCE,7),
-    GEO(NewsConstant.GEO,8);
+    LIVE(NewsFileConstant.NewsType_LIVE,0),
+    INTERIOR(NewsFileConstant.NewsType_INTERIOR,1),
+    INTERNATIONAL(NewsFileConstant.NewsType_INTERNATIONAL,2),
+    ECONOMY(NewsFileConstant.NewsType_ECONOMY,3),
+    RECREATION(NewsFileConstant.NewsType_RECREATION,4),
+    PHYSICAL(NewsFileConstant.NewsType_PHYSICAL,5),
+    IT(NewsFileConstant.NewsType_IT,6),
+    SCIENCE(NewsFileConstant.NewsType_SCIENCE,7),
+    GEO(NewsFileConstant.NewsType_GEO,8);
 
     private String text;
     private Integer value;

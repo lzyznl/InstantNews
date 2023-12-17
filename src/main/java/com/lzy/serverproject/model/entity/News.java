@@ -1,4 +1,4 @@
-package com.lzy.serverproject.model;
+package com.lzy.serverproject.model.entity;
 
 import lombok.Data;
 
@@ -11,6 +11,7 @@ public class News {
     private String newsContent;
     private String newsTime;
     private String newsLink;
+    private String newsImage;
 
     @Override
     public  int hashCode(){

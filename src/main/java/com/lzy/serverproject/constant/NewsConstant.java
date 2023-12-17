@@ -1,10 +1,6 @@
 package com.lzy.serverproject.constant;
 
-import com.lzy.serverproject.model.News;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public interface NewsConstant {

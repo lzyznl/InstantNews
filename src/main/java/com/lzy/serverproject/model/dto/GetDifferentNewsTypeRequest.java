@@ -11,6 +11,7 @@ public class GetDifferentNewsTypeRequest {
     private int newsType;
     private int newsLange;
     private String newsTime;
+    private int currentNewsNum;
     private int initSize;
     private int addSize;
 }

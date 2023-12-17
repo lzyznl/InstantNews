@@ -2,7 +2,7 @@ package com.lzy.serverproject.utils;
 
 import com.google.gson.Gson;
 import com.lzy.serverproject.constant.NewsConstant;
-import com.lzy.serverproject.model.News;
+import com.lzy.serverproject.model.entity.News;
 import com.lzy.serverproject.model.translate.translateResult;
 import com.lzy.serverproject.utils.translate.TransApi;
 import org.jsoup.Jsoup;
@@ -28,10 +28,12 @@ public class GetNewsListUtil {
                 String title = newsItem.select("title").text();
                 String link = newsItem.select("link").text();
                 String pubDate = newsItem.select("pubDate").text();
+                String image = newsItem.select("image").text();
                 News news = new News();
                 news.setNewsTitle(title);
                 news.setNewsTime(pubDate);
                 news.setNewsLink(link);
+                news.setNewsImage(image);
                 newsList.add(news);
             }
             return newsList;

@@ -1,12 +1,8 @@
 package com.lzy.serverproject.Service;
 
 
-import com.lzy.serverproject.model.News;
-import org.springframework.stereotype.Service;
+import com.lzy.serverproject.model.vo.getNewsVo;
 
-import java.util.List;
-
-@Service
 public interface NewsService {
 
     /**
@@ -16,7 +12,8 @@ public interface NewsService {
      * @param newsTime
      * @param initSize
      * @param addSize
+     * @param currentNewsNum
      * @return
      */
-    List<News> getNews(int newsType, int newsLange, String newsTime, int initSize, int addSize);
+    getNewsVo getNews(int newsType, int newsLange, String newsTime, int initSize, int addSize, int currentNewsNum);
 }

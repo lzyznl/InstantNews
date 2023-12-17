@@ -13,15 +13,15 @@ public class UrlMapUtil {
 
     public static Map<String, String> urlMap(){
         Map<String,String> urlMap = new HashMap<>();
-        urlMap.put(NewsFileConstant.ChineseNewsType_ECONOMY,NewsConstant.ECONOMY);
-        urlMap.put(NewsFileConstant.ChineseNewsType_LIVE,NewsConstant.LIVE);
-        urlMap.put(NewsFileConstant.ChineseNewsType_IT,NewsConstant.IT);
-        urlMap.put(NewsFileConstant.ChineseNewsType_INTERIOR,NewsConstant.INTERIOR);
-        urlMap.put(NewsFileConstant.ChineseNewsType_INTERNATIONAL,NewsConstant.INTERNATIONAL);
-        urlMap.put(NewsFileConstant.ChineseNewsType_RECREATION,NewsConstant.RECREATION);
-        urlMap.put(NewsFileConstant.ChineseNewsType_PHYSICAL,NewsConstant.PHYSICAL);
-        urlMap.put(NewsFileConstant.ChineseNewsType_GEO,NewsConstant.GEO);
-        urlMap.put(NewsFileConstant.ChineseNewsType_SCIENCE,NewsConstant.SCIENCE);
+        urlMap.put(NewsFileConstant.NewsType_ECONOMY,NewsConstant.ECONOMY);
+        urlMap.put(NewsFileConstant.NewsType_LIVE,NewsConstant.LIVE);
+        urlMap.put(NewsFileConstant.NewsType_IT,NewsConstant.IT);
+        urlMap.put(NewsFileConstant.NewsType_INTERIOR,NewsConstant.INTERIOR);
+        urlMap.put(NewsFileConstant.NewsType_INTERNATIONAL,NewsConstant.INTERNATIONAL);
+        urlMap.put(NewsFileConstant.NewsType_RECREATION,NewsConstant.RECREATION);
+        urlMap.put(NewsFileConstant.NewsType_PHYSICAL,NewsConstant.PHYSICAL);
+        urlMap.put(NewsFileConstant.NewsType_GEO,NewsConstant.GEO);
+        urlMap.put(NewsFileConstant.NewsType_SCIENCE,NewsConstant.SCIENCE);
         return urlMap;
     }
 }
