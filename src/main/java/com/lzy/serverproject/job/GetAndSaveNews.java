@@ -10,6 +10,7 @@ import com.lzy.serverproject.mapper.DayNewsNumMapper;
 import com.lzy.serverproject.model.entity.DayNewsNum;
 import com.lzy.serverproject.model.entity.News;
 import com.lzy.serverproject.utils.*;
+import com.lzy.serverproject.utils.translate.TranslateUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -27,8 +28,8 @@ import java.util.concurrent.*;
 @Component
 public class GetAndSaveNews {
 
-    List<News> preJapaneseNewsList = new ArrayList<>();
-    List<News> preChineseNewsList = new ArrayList<>();
+    Map<String,List<News>> preJapaneseNewsListMap = UrlMapUtil.listMap();
+    Map<String,List<News>> preChineseNewsListMap = UrlMapUtil.listMap();
 
     @Resource
     private DayNewsNumService dayNewsNumService;
@@ -46,76 +47,54 @@ public class GetAndSaveNews {
         for (Entry<String, String> entry : urlMap.entrySet()) {
             String newsType = entry.getKey();
             String newsUrl = entry.getValue();
+            List<News> preJapaneseNewsList = preJapaneseNewsListMap.get(newsType);
+            List<News> preChineseNewsList = preChineseNewsListMap.get(newsType);
             System.out.println("开始爬取新闻" + newsType);
             System.out.println("爬取新闻地址" + newsUrl);
-            // 提交任务
-            Future<?> japaneseFuture = executorService.submit(() -> {
-                System.out.println("开始爬取日文新闻");
-                List<News> japaneseNewsContentList = GetNewsContentUtil.getNewsContent(GetNewsListUtil.getJapaneseNewsList(newsUrl), false);
-                if (preJapaneseNewsList.size() == 0) {
-                    //存储list中的内容
-                    SaveNewsListUtil.save(japaneseNewsContentList, false, newsType);
-                    //向数据库中进行存储
-                    Boolean fact = insertIntoDataBase(newsType, japaneseNewsContentList.size());
-                    if(!fact){
-                        throw new BusinessException(ErrorCode.SYSTEM_ERROR,"存储新闻数量到数据库异常");
-                    }
-                } else {
-                    List<News> SaveJapaneseNewsList = new ArrayList<>();
-                    //比较之后创建新list存储内容
-                    for (News news : japaneseNewsContentList) {
-                        for (News value : preJapaneseNewsList) {
-                            if (!news.getNewsTitle().equals(value.getNewsTitle())) {
-                                SaveJapaneseNewsList.add(news);
-                            }
+            System.out.println("开始爬取中文以及日文新闻");
+            List<News> japaneseNewsContentList = GetNewsContentUtil.getNewsContent(GetNewsListUtil.getJapaneseNewsList(newsUrl), false);
+            if (preJapaneseNewsList.size() == 0) {
+                //将所有新闻内容进行翻译
+                List<News> chineseNewsContentList = TranslateUtil.translate(japaneseNewsContentList);
+                //存储list中的内容
+                SaveNewsListUtil.save(japaneseNewsContentList, false, newsType);
+                //存储list中的内容
+                SaveNewsListUtil.save(chineseNewsContentList, true, newsType);
+                //向数据库中进行存储
+                Boolean fact = insertIntoDataBase(newsType, japaneseNewsContentList.size());
+                if(!fact){
+                    throw new BusinessException(ErrorCode.SYSTEM_ERROR,"存储新闻数量到数据库异常");
+                }
+                preJapaneseNewsList.addAll(chineseNewsContentList);
+                preJapaneseNewsList.addAll(japaneseNewsContentList);
+            } else {
+                List<News> SaveJapaneseNewsList = new ArrayList<>();
+                //比较之后创建新list存储内容
+                for (News news : japaneseNewsContentList) {
+                    for (News value : preJapaneseNewsList) {
+                        if (!news.getNewsTitle().equals(value.getNewsTitle())) {
+                            SaveJapaneseNewsList.add(news);
                         }
                     }
-                    preJapaneseNewsList.clear();
-                    preJapaneseNewsList.addAll(japaneseNewsContentList);
-                    //存储list中的内容
-                    SaveNewsListUtil.save(SaveJapaneseNewsList, false, newsType);
-                    //向数据库中进行存储
-                    Boolean fact = insertIntoDataBase(newsType, SaveJapaneseNewsList.size());
-                    if(!fact){
-                        throw new BusinessException(ErrorCode.SYSTEM_ERROR,"存储新闻数量到数据库异常");
-                    }
                 }
-                System.out.println("爬取并存储日文新闻结束");
-            });
-            Future<?> chineseFuture = executorService.submit(() -> {
-                System.out.println("开始爬取中文新闻");
-                List<News> chineseNewsContentList = GetNewsContentUtil.getNewsContent(GetNewsListUtil.getChineseNewsList(newsUrl), true);
-                if (preChineseNewsList.size() == 0) {
-                    //直接存储内容
-                    SaveNewsListUtil.save(chineseNewsContentList, true, newsType);
-                } else {
-                    List<News> SaveChineseNewsList = new ArrayList<>();
-                    //比较之后存储内容
-                    for (News news : chineseNewsContentList) {
-                        for (News value : preChineseNewsList) {
-                            if (!news.getNewsTitle().equals(value.getNewsTitle())) {
-                                SaveChineseNewsList.add(news);
-                            }
-                        }
-                    }
-                    preChineseNewsList.clear();
-                    preJapaneseNewsList.addAll(chineseNewsContentList);
-                    //存储list中的内容
-                    SaveNewsListUtil.save(SaveChineseNewsList, true, newsType);
+                preJapaneseNewsList.clear();
+                preJapaneseNewsList.addAll(japaneseNewsContentList);
+                System.out.println("此次存储"+newsType+"新闻"+SaveJapaneseNewsList.size()+"条");
+                //进行翻译
+                List<News> SaveChineseNewsList = TranslateUtil.translate(SaveJapaneseNewsList);
+                //存储list中的内容
+                SaveNewsListUtil.save(SaveJapaneseNewsList, false, newsType);
+                //存储list中的内容
+                SaveNewsListUtil.save(SaveChineseNewsList, true, newsType);
+                //向数据库中进行存储
+                Boolean fact = insertIntoDataBase(newsType, SaveJapaneseNewsList.size());
+                if(!fact){
+                    throw new BusinessException(ErrorCode.SYSTEM_ERROR,"存储新闻数量到数据库异常");
                 }
-                System.out.println("爬取并存储中文新闻结束");
-            });
-            try {
-                japaneseFuture.get();
-                chineseFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
             }
-            System.out.println("执行完成");
+            System.out.println("爬取并存储中文以及日文新闻结束");
         }
-        System.out.println("本次定时任务所有任务执行完毕");
-        // 关闭线程池
-        executorService.shutdown();
+        System.out.println("一次定时任务现在全部结束");
     }
 
     public Boolean insertIntoDataBase(String newsType, int listSize) {

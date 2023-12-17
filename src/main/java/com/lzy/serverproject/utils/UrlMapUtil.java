@@ -2,8 +2,11 @@ package com.lzy.serverproject.utils;
 
 import com.lzy.serverproject.constant.NewsConstant;
 import com.lzy.serverproject.constant.NewsFileConstant;
+import com.lzy.serverproject.model.entity.News;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,5 +26,20 @@ public class UrlMapUtil {
         urlMap.put(NewsFileConstant.NewsType_GEO,NewsConstant.GEO);
         urlMap.put(NewsFileConstant.NewsType_SCIENCE,NewsConstant.SCIENCE);
         return urlMap;
+    }
+
+
+    public static Map<String, List<News>> listMap(){
+        Map<String,List<News>> listMap = new HashMap<>();
+        listMap.put(NewsFileConstant.NewsType_ECONOMY,new ArrayList<>());
+        listMap.put(NewsFileConstant.NewsType_LIVE,new ArrayList<>());
+        listMap.put(NewsFileConstant.NewsType_IT,new ArrayList<>());
+        listMap.put(NewsFileConstant.NewsType_INTERIOR,new ArrayList<>());
+        listMap.put(NewsFileConstant.NewsType_INTERNATIONAL,new ArrayList<>());
+        listMap.put(NewsFileConstant.NewsType_RECREATION,new ArrayList<>());
+        listMap.put(NewsFileConstant.NewsType_PHYSICAL,new ArrayList<>());
+        listMap.put(NewsFileConstant.NewsType_GEO,new ArrayList<>());
+        listMap.put(NewsFileConstant.NewsType_SCIENCE,new ArrayList<>());
+        return listMap;
     }
 }

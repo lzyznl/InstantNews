@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 翻译工具类
  */
-public class translateUtil {
+public class TranslateUtil {
 
     /**
      * 翻译日文新闻list
