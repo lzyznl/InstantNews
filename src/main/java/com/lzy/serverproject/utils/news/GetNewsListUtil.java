@@ -1,4 +1,4 @@
-package com.lzy.serverproject.utils;
+package com.lzy.serverproject.utils.news;
 
 import com.google.gson.Gson;
 import com.lzy.serverproject.constant.NewsConstant;

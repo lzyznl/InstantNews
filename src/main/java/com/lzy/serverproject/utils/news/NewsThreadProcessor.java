@@ -1,4 +1,4 @@
-package com.lzy.serverproject.utils;
+package com.lzy.serverproject.utils.news;
 
 import java.util.concurrent.*;
 

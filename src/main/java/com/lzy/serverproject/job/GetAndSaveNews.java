@@ -10,10 +10,13 @@ import com.lzy.serverproject.mapper.DayNewsNumMapper;
 import com.lzy.serverproject.model.entity.DayNewsNum;
 import com.lzy.serverproject.model.entity.News;
 import com.lzy.serverproject.utils.*;
-import com.lzy.serverproject.utils.translate.TranslateUtil;
+import com.lzy.serverproject.utils.common.CommonUtils;
+import com.lzy.serverproject.utils.news.GetNewsContentUtil;
+import com.lzy.serverproject.utils.news.GetNewsListUtil;
+import com.lzy.serverproject.utils.news.NewsThreadProcessor;
+import com.lzy.serverproject.utils.news.SaveNewsListUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +41,7 @@ public class GetAndSaveNews {
     private DayNewsNumMapper dayNewsNumMapper;
 
 
-    @Scheduled(fixedRate = 7 * 60 * 1000)
+//    @Scheduled(fixedRate = 7 * 60 * 1000)
     public void task() {
         System.out.println("开始执行定时任务");
         Map<String, String> urlMap = UrlMapUtil.urlMap();
@@ -52,40 +55,51 @@ public class GetAndSaveNews {
             System.out.println("开始爬取新闻" + newsType);
             System.out.println("爬取新闻地址" + newsUrl);
             System.out.println("开始爬取中文以及日文新闻");
+
+            //爬取日文新闻
             List<News> japaneseNewsContentList = GetNewsContentUtil.getNewsContent(GetNewsListUtil.getJapaneseNewsList(newsUrl), false);
             if (preJapaneseNewsList.size() == 0) {
-                //将所有新闻内容进行翻译
-                List<News> chineseNewsContentList = TranslateUtil.translate(japaneseNewsContentList);
+                //对新闻进行编号，此处的新闻编号肯定是从0开始
+                japaneseNewsContentList = setListNewsId(japaneseNewsContentList,0);
                 //存储list中的内容
                 SaveNewsListUtil.save(japaneseNewsContentList, false, newsType);
-                //存储list中的内容
-                SaveNewsListUtil.save(chineseNewsContentList, true, newsType);
                 //向数据库中进行存储
                 Boolean fact = insertIntoDataBase(newsType, japaneseNewsContentList.size());
                 if(!fact){
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR,"存储新闻数量到数据库异常");
                 }
-                preJapaneseNewsList.addAll(chineseNewsContentList);
                 preJapaneseNewsList.addAll(japaneseNewsContentList);
             } else {
                 List<News> SaveJapaneseNewsList = new ArrayList<>();
                 //比较之后创建新list存储内容
-                for (News news : japaneseNewsContentList) {
-                    for (News value : preJapaneseNewsList) {
-                        if (!news.getNewsTitle().equals(value.getNewsTitle())) {
-                            SaveJapaneseNewsList.add(news);
+                for(int i=0;i<japaneseNewsContentList.size();++i){
+                    News news = japaneseNewsContentList.get(i);
+                    int flag=0;
+                    for(int j=0;j<preChineseNewsList.size();++j){
+                        News value = preChineseNewsList.get(j);
+                        if (news.getNewsTitle().equals(value.getNewsTitle())) {
+                            flag=1;
                         }
+                    }
+                    if(flag==1){
+                        SaveJapaneseNewsList.add(news);
                     }
                 }
                 preJapaneseNewsList.clear();
                 preJapaneseNewsList.addAll(japaneseNewsContentList);
                 System.out.println("此次存储"+newsType+"新闻"+SaveJapaneseNewsList.size()+"条");
-                //进行翻译
-                List<News> SaveChineseNewsList = TranslateUtil.translate(SaveJapaneseNewsList);
+                //给新闻进行编号
+                String systemTime = CommonUtils.getSystemTime();
+                QueryWrapper<DayNewsNum> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("dayTime",systemTime);
+                DayNewsNum dayNewsNum = dayNewsNumMapper.selectOne(queryWrapper);
+                Integer startId = getExplicitNewsTypeStartId(dayNewsNum, newsType);
+                if(startId==-1){
+                    throw new BusinessException(ErrorCode.SYSTEM_ERROR,"新闻编号设置错误");
+                }
+                SaveJapaneseNewsList = setListNewsId(SaveJapaneseNewsList,startId);
                 //存储list中的内容
                 SaveNewsListUtil.save(SaveJapaneseNewsList, false, newsType);
-                //存储list中的内容
-                SaveNewsListUtil.save(SaveChineseNewsList, true, newsType);
                 //向数据库中进行存储
                 Boolean fact = insertIntoDataBase(newsType, SaveJapaneseNewsList.size());
                 if(!fact){
@@ -96,10 +110,43 @@ public class GetAndSaveNews {
         }
         System.out.println("一次定时任务现在全部结束");
     }
+    
+    public List<News> setListNewsId(List<News> newsList,int start){
+        for(int i=0;i<newsList.size();++i){
+            News news = newsList.get(i);
+            news.setNewsId(start+i);
+        }
+        return newsList;
+    }
+    
+    public Integer getExplicitNewsTypeStartId(DayNewsNum dayNewsNum,String newsType){
+        int startId = -1;
+        switch (newsType){
+            case NewsFileConstant.NewsType_LIVE:
+                startId=dayNewsNum.getLiveNum();
+            case NewsFileConstant.NewsType_INTERIOR:
+                startId=dayNewsNum.getInteriorNum();
+            case NewsFileConstant.NewsType_GEO:
+                startId= dayNewsNum.getGeoNum();
+            case NewsFileConstant.NewsType_INTERNATIONAL:
+                startId=dayNewsNum.getInterNationalNum();
+            case NewsFileConstant.NewsType_SCIENCE:
+                startId=dayNewsNum.getScienceNum();
+            case NewsFileConstant.NewsType_ECONOMY:
+                startId=dayNewsNum.getEconomyNum();
+            case NewsFileConstant.NewsType_PHYSICAL:
+                startId=dayNewsNum.getPhysicalNum();
+            case NewsFileConstant.NewsType_RECREATION:
+                startId = dayNewsNum.getRecreationNum();
+            case NewsFileConstant.NewsType_IT:
+                startId = dayNewsNum.getITNum();
+        }
+        return startId;
+    }
 
     public Boolean insertIntoDataBase(String newsType, int listSize) {
         //向数据库中进行存储
-        String systemTime = SaveNewsListUtil.getSystemTime();
+        String systemTime = CommonUtils.getSystemTime();
         QueryWrapper<DayNewsNum> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("dayTime", systemTime);
         DayNewsNum dayNewsNum = dayNewsNumMapper.selectOne(queryWrapper);

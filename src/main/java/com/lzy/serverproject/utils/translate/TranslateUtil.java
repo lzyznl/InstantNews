@@ -1,7 +1,9 @@
 package com.lzy.serverproject.utils.translate;
 
+import com.google.gson.Gson;
 import com.lzy.serverproject.constant.NewsConstant;
 import com.lzy.serverproject.model.entity.News;
+import com.lzy.serverproject.model.translate.translateResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,15 @@ import java.util.List;
  * 翻译工具类
  */
 public class TranslateUtil {
+
+    static TransApi transApi = new TransApi(NewsConstant.appId,NewsConstant.appKey);
+
+    public static String getTranslateResult(String query){
+        String transResult = transApi.getTransResult(query, NewsConstant.from_lg, NewsConstant.to_lg);
+        Gson gson = new Gson();
+        translateResult translateResult = gson.fromJson(transResult, translateResult.class);
+        return translateResult.getTrans_result()[0].getDst();
+    }
 
     /**
      * 翻译日文新闻list
@@ -28,7 +39,6 @@ public class TranslateUtil {
             translatedNews.setNewsImage(news.getNewsImage());
             translatedNews.setNewsTime(news.getNewsTime());
             translatedNews.setNewsLink(news.getNewsLink());
-            TransApi transApi = new TransApi(NewsConstant.appId,NewsConstant.appKey);
             String translatedNewsTitle = transApi.getTransResult(news.getNewsTitle(), NewsConstant.from_lg, NewsConstant.to_lg);
             String translatedNewsContent = transApi.getTransResult(news.getNewsContent(), NewsConstant.from_lg, NewsConstant.to_lg);
             translatedNews.setNewsContent(translatedNewsContent);

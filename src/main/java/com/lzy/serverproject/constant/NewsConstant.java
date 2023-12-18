@@ -17,12 +17,11 @@ public interface NewsConstant {
     String SCIENCE = "https://news.yahoo.co.jp/rss/categories/science.xml";
     String GEO = "https://news.yahoo.co.jp/rss/categories/local.xml";
 
-
     /**
      * 百度翻译相关参数设置
      */
-    String appId = "20231009001841959";
-    String appKey = "RRqR2QPLbfN33Em6rtCx";
+    String appId = "202310090018419597";
+    String appKey = "RRqR2QPLbfN33Em6rtCx7";
     String from_lg = "jp";
     String to_lg = "zh";
 }

@@ -1,27 +1,32 @@
 package com.lzy.serverproject.Service.impl;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.lzy.serverproject.Service.NewsService;
 import com.lzy.serverproject.constant.NewsFileConstant;
 import com.lzy.serverproject.model.entity.News;
 import com.lzy.serverproject.model.enums.newsTypeEnum;
 import com.lzy.serverproject.model.vo.getNewsVo;
-import com.lzy.serverproject.utils.SaveNewsListUtil;
+import com.lzy.serverproject.utils.common.CommonUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class NewsServiceImpl implements NewsService {
 
 
+    /**
+     * 获取新闻
+     * @param newsType
+     * @param newsLange
+     * @param newsTime
+     * @param initSize
+     * @param addSize
+     * @param currentNewsNum
+     * @return
+     */
     @Override
     public getNewsVo getNews(int newsType, int newsLange, String newsTime, int initSize, int addSize, int currentNewsNum) {
         List<News> newsList = new ArrayList<>();
@@ -47,7 +52,7 @@ public class NewsServiceImpl implements NewsService {
             return getNewsVo;
         }
         //读取该文件中的所有内容
-        List<News> newsLists = readJsonFile(path);
+        List<News> newsLists = CommonUtils.readJsonFile(path);
         //处理读取到的数据然后进行返回
         List<News> subList = null;
         if(initSize!=0){
@@ -78,40 +83,12 @@ public class NewsServiceImpl implements NewsService {
         return new ArrayList<>(subList);
     }
 
-    /**
-     * 读取json文件中的内容并且转化为list
-     * @param filePath
-     * @return
-     */
-    public static List<News> readJsonFile(String filePath) {
-        List<News> newsList = new ArrayList<>();
-
-        // 读取文件内容
-        String jsonContent = FileUtil.readUtf8String(filePath);
-
-        // 使用Hutool解析JSON
-        JSONArray jsonArray = JSONUtil.parseArray(jsonContent);
-
-        // 遍历JSON数组，将每个JSON对象转换为News对象
-        for (Object obj : jsonArray) {
-            JSONObject jsonObj = (JSONObject) obj;
-            News news = new News();
-            news.setNewsTitle(jsonObj.getStr("newsTitle"));
-            news.setNewsContent(jsonObj.getStr("newsContent"));
-            news.setNewsTime(jsonObj.getStr("newsTime"));
-            news.setNewsLink(jsonObj.getStr("newsLink"));
-            news.setNewsImage(jsonObj.getStr("newsImage"));
-            newsList.add(news);
-        }
-
-        return newsList;
-    }
 
     public String getPath(String type,String newsTime,boolean isChinese){
         String projectFilePath = System.getProperty("user.dir");
         String newsFilePath = "";
         String finalPath = "";
-        String systemTime = SaveNewsListUtil.getSystemTime();
+        String systemTime = CommonUtils.getSystemTime();
         if(isChinese){
             newsFilePath=projectFilePath+ File.separator+ NewsFileConstant.TotalNewsFileDir+File.separator+NewsFileConstant.ChineseNewsFileDir
                     +File.separator+type;
@@ -120,7 +97,7 @@ public class NewsServiceImpl implements NewsService {
                     +File.separator+type;
         }
         if(!newsTime.equals("")){
-            if(!isValidDateFormat(newsTime)){
+            if(!CommonUtils.isValidDateFormat(newsTime)){
                 return "";
             }
             finalPath = newsFilePath+File.separator+newsTime+".json";
@@ -131,14 +108,5 @@ public class NewsServiceImpl implements NewsService {
             finalPath = newsFilePath+File.separator+(systemTime+".json");
         }
         return finalPath;
-    }
-
-    public static boolean isValidDateFormat(String date) {
-        // 使用正则表达式匹配日期格式
-        String pattern = "\\d{4}-\\d{2}-\\d{2}";
-        Pattern regex = Pattern.compile(pattern);
-        Matcher matcher = regex.matcher(date);
-
-        return matcher.matches();
     }
 }

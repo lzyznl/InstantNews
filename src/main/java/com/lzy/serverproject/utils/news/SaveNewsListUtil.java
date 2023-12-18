@@ -1,15 +1,14 @@
-package com.lzy.serverproject.utils;
+package com.lzy.serverproject.utils.news;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.lzy.serverproject.constant.NewsFileConstant;
 import com.lzy.serverproject.model.entity.News;
+import com.lzy.serverproject.utils.common.CommonUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -48,7 +47,7 @@ public class SaveNewsListUtil {
         checkFileExistsOrMake(NewsFileDir,true);
         String TypeNewsFileDir = NewsFileDir+File.separator+NewsType;
         checkFileExistsOrMake(TypeNewsFileDir,true);
-        String systemTime = getSystemTime();
+        String systemTime = CommonUtils.getSystemTime();
         //创建具体的新闻文件
         String explicitNewsFile = TypeNewsFileDir+File.separator+(systemTime+".json");
         checkFileExistsOrMake(explicitNewsFile,false);
@@ -74,16 +73,6 @@ public class SaveNewsListUtil {
                 FileUtil.touch(filePath);
             }
         }
-    }
-
-    public static String getSystemTime(){
-        // 获取当前时间
-        LocalDateTime currentTime = LocalDateTime.now();
-        // 定义日期时间格式
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        // 格式化当前时间为指定格式的字符串
-        String formattedTime = currentTime.format(formatter);
-        return formattedTime;
     }
 
     private static JSONArray readExistingNews(String JSON_FILE_PATH) {
