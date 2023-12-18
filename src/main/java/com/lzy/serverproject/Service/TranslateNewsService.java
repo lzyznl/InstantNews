@@ -14,4 +14,5 @@ public interface TranslateNewsService {
      * @return
      */
     TranslatedNewsVo translate(String newsTime, Integer newsType, Integer newsId);
+
 }

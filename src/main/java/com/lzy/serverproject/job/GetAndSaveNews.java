@@ -30,9 +30,9 @@ import java.util.concurrent.*;
  */
 @Component
 public class GetAndSaveNews {
-
-    Map<String,List<News>> preJapaneseNewsListMap = UrlMapUtil.listMap();
-    Map<String,List<News>> preChineseNewsListMap = UrlMapUtil.listMap();
+    UrlMapUtil<News> urlMapUtil = new UrlMapUtil<News>();
+    Map<String,List<News>> preJapaneseNewsListMap = urlMapUtil.listMap();
+    Map<String,List<News>> preChineseNewsListMap = urlMapUtil.listMap();
 
     @Resource
     private DayNewsNumService dayNewsNumService;

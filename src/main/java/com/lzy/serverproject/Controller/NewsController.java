@@ -7,15 +7,16 @@ import com.lzy.serverproject.common.ErrorCode;
 import com.lzy.serverproject.common.ResultUtils;
 import com.lzy.serverproject.exception.BusinessException;
 import com.lzy.serverproject.model.dto.GetDifferentNewsTypeRequest;
+import com.lzy.serverproject.model.dto.GetExplicitNewsContentRequest;
 import com.lzy.serverproject.model.dto.TranslateNewsRequest;
+import com.lzy.serverproject.model.vo.ExplicitNewsContentVo;
+import com.lzy.serverproject.model.vo.NewsDataVo;
 import com.lzy.serverproject.model.vo.TranslatedNewsVo;
 import com.lzy.serverproject.model.vo.getNewsVo;
 import com.lzy.serverproject.utils.common.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import javax.annotation.Resource;
 
 /**
@@ -77,5 +78,35 @@ public class NewsController {
         }
         TranslatedNewsVo translate = translateNewsService.translate(newsTime, newsType, newsId);
         return ResultUtils.success(translate);
+    }
+
+
+    /**
+     * 获取新闻发布数量相关信息接口
+     * @return
+     */
+    @GetMapping("/getNewsPubData")
+    public BaseResponse<NewsDataVo> getNewsData(){
+        NewsDataVo newsPubData = newsService.getNewsPubData();
+        return ResultUtils.success(newsPubData);
+    }
+
+
+    @PostMapping("/get")
+    public BaseResponse<ExplicitNewsContentVo> getExplicitNewsContent(@RequestBody GetExplicitNewsContentRequest getExplicitNewsContentRequest){
+        String newsTime = getExplicitNewsContentRequest.getNewsTime();
+        Integer newsType = getExplicitNewsContentRequest.getNewsType();
+        Integer newsId = getExplicitNewsContentRequest.getNewsId();
+        if(newsId<0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if(newsType<0||newsType>8){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if(newsTime!=null&&!newsTime.equals("")&&!CommonUtils.isValidDateFormat(newsTime)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        ExplicitNewsContentVo explicitNewsContent = newsService.getExplicitNewsContent(newsType, newsTime, newsId);
+        return ResultUtils.success(explicitNewsContent);
     }
 }

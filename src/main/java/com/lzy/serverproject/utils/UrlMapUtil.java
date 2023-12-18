@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * 获取新闻地址列表
  */
-public class UrlMapUtil {
+public class UrlMapUtil<T> {
 
     public static Map<String, String> urlMap(){
         Map<String,String> urlMap = new HashMap<>();
@@ -29,8 +29,8 @@ public class UrlMapUtil {
     }
 
 
-    public static Map<String, List<News>> listMap(){
-        Map<String,List<News>> listMap = new HashMap<>();
+    public  Map<String, List<T>> listMap(){
+        Map<String,List<T>> listMap = new HashMap<>();
         listMap.put(NewsFileConstant.NewsType_ECONOMY,new ArrayList<>());
         listMap.put(NewsFileConstant.NewsType_LIVE,new ArrayList<>());
         listMap.put(NewsFileConstant.NewsType_IT,new ArrayList<>());

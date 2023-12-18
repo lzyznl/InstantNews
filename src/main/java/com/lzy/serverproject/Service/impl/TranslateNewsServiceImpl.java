@@ -21,8 +21,6 @@ import java.util.Map;
 @Service
 public class TranslateNewsServiceImpl implements TranslateNewsService {
 
-    private static Map<String,List<News>> map = UrlMapUtil.listMap();
-
     /**
      * 翻译新闻
      * @param newsTime
