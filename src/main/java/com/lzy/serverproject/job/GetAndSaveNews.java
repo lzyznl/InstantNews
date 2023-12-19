@@ -2,23 +2,30 @@ package com.lzy.serverproject.job;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.lzy.serverproject.SMS.SendSms;
 import com.lzy.serverproject.Service.DayNewsNumService;
 import com.lzy.serverproject.common.ErrorCode;
 import com.lzy.serverproject.constant.NewsFileConstant;
 import com.lzy.serverproject.exception.BusinessException;
 import com.lzy.serverproject.mapper.DayNewsNumMapper;
+import com.lzy.serverproject.mapper.SubscribeMapper;
 import com.lzy.serverproject.model.entity.DayNewsNum;
 import com.lzy.serverproject.model.entity.News;
+import com.lzy.serverproject.model.entity.Subscribe;
+import com.lzy.serverproject.model.enums.newsTypeEnum;
 import com.lzy.serverproject.utils.*;
 import com.lzy.serverproject.utils.common.CommonUtils;
 import com.lzy.serverproject.utils.news.GetNewsContentUtil;
 import com.lzy.serverproject.utils.news.GetNewsListUtil;
 import com.lzy.serverproject.utils.news.NewsThreadProcessor;
 import com.lzy.serverproject.utils.news.SaveNewsListUtil;
+import com.lzy.serverproject.utils.translate.TranslateUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Map;
@@ -39,6 +46,9 @@ public class GetAndSaveNews {
 
     @Resource
     private DayNewsNumMapper dayNewsNumMapper;
+
+    @Resource
+    private SubscribeMapper subscribeMapper;
 
 
 //    @Scheduled(fixedRate = 3 * 60 * 1000)
@@ -114,6 +124,45 @@ public class GetAndSaveNews {
             System.out.println("爬取并存储中文以及日文新闻结束");
         }
         System.out.println("一次定时任务现在全部结束");
+    }
+
+    public void sendMessage(){
+        String systemTime = CommonUtils.getSystemTime();
+        //构造文件路径
+        String path = System.getProperty("user.dir");
+        String DirPath = path+ File.separator+NewsFileConstant.TotalNewsFileDir+File.separator
+                +NewsFileConstant.JapaneseNewsFileDir+File.separator;
+        List<Subscribe> subscribes = subscribeMapper.selectList(null);
+        StringBuilder stringBuilder = new StringBuilder();
+        //遍历每一个订阅信息，向用户推送对应类型的新闻
+        for(Subscribe subscribe:subscribes) {
+            String phoneNumber = subscribe.getPhoneNumber();
+            Integer day = subscribe.getDay();
+            Integer newsType = subscribe.getNewsType();
+            //获取新闻类型
+            newsTypeEnum enumByValue = newsTypeEnum.getEnumByValue(newsType);
+            if(enumByValue==null){
+                throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            }
+            String type = enumByValue.getText();
+            String finalPath = DirPath+type+File.separator+(systemTime+".json");
+            List<News> newsList = CommonUtils.readJsonFile(finalPath);
+            for(int i=0;i<10;++i){
+                if(i!=9){
+                    stringBuilder.append(newsList.get(i).getNewsTitle()).append("\n");
+                }else{
+                    stringBuilder.append(newsList.get(i).getNewsTitle());
+                }
+            }
+            //进行标题翻译
+            String titleStr = stringBuilder.toString();
+            List<String> translatedTitle = TranslateUtil.batchTranslate(titleStr);
+            //调用发送短信服务
+            String[] translateTitleArray = (String[]) translatedTitle.toArray();
+            String[] phoneNumberSet = new String[1];
+            phoneNumberSet[0]=phoneNumber;
+            SendSms.send(translateTitleArray,phoneNumberSet);
+        }
     }
     
     public List<News> setListNewsId(List<News> newsList,int start){

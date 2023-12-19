@@ -13,7 +13,7 @@ import com.tencentcloudapi.sms.v20210111.models.SendSmsResponse;
 
 
 public class SendSms {
-    public void send(String[] templateParamSet,String[] phoneNumberSet){
+    public static void send(String[] templateParamSet,String[] phoneNumberSet){
         try {
             /* 必要步骤：
              * 实例化一个认证对象，入参需要传入腾讯云账户密钥对secretId，secretKey。

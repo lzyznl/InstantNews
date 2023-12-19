@@ -3,16 +3,14 @@ package com.lzy.serverproject.Controller;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import com.lzy.serverproject.Service.NewsService;
+import com.lzy.serverproject.Service.SubscribeService;
 import com.lzy.serverproject.Service.TranslateNewsService;
 import com.lzy.serverproject.common.BaseResponse;
 import com.lzy.serverproject.common.ErrorCode;
 import com.lzy.serverproject.common.ResultUtils;
 import com.lzy.serverproject.constant.NewsFileConstant;
 import com.lzy.serverproject.exception.BusinessException;
-import com.lzy.serverproject.model.dto.GetDifferentNewsTypeRequest;
-import com.lzy.serverproject.model.dto.GetExplicitNewsContentRequest;
-import com.lzy.serverproject.model.dto.SearchNewsRequest;
-import com.lzy.serverproject.model.dto.TranslateNewsRequest;
+import com.lzy.serverproject.model.dto.*;
 import com.lzy.serverproject.model.vo.*;
 import com.lzy.serverproject.utils.common.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +37,9 @@ public class NewsController {
 
     @Resource
     private TranslateNewsService translateNewsService;
+
+    @Resource
+    private SubscribeService subscribeService;
 
 
     /**
@@ -176,5 +177,24 @@ public class NewsController {
             }
         }
         return ResultUtils.success(dateTimeVo);
+    }
+
+
+    @PostMapping("/subscribe")
+    public BaseResponse<Boolean> subscribeNews(@RequestBody SubscribeRequest subscribeRequest){
+        String phoneNumber = subscribeRequest.getPhoneNumber();
+        Integer newsType = subscribeRequest.getNewsType();
+        Integer subscribe = subscribeRequest.getSubscribe();
+        if(phoneNumber==null||phoneNumber.length()!=11){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"手机号码不符合格式");
+        }
+        if(newsType<0||newsType>8){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"订阅新闻类型不存在");
+        }
+        if(subscribe<0 || subscribe>60){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"订阅天数不能超过60天，小于0天");
+        }
+        Boolean fact = subscribeService.subscribe(phoneNumber,newsType,subscribe);
+        return ResultUtils.success(fact);
     }
 }
