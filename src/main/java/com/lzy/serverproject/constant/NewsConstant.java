@@ -17,7 +17,7 @@ public interface NewsConstant {
     String SCIENCE = "https://news.yahoo.co.jp/rss/categories/science.xml";
     String GEO = "https://news.yahoo.co.jp/rss/categories/local.xml";
 
-    Integer NEWS_CONTENT_LENGTH = 200;
+    Integer NEWS_CONTENT_LENGTH = 70;
 
     /**
      * 百度翻译相关参数设置

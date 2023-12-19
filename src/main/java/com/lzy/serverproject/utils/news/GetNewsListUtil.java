@@ -1,5 +1,4 @@
 package com.lzy.serverproject.utils.news;
-
 import com.google.gson.Gson;
 import com.lzy.serverproject.constant.NewsConstant;
 import com.lzy.serverproject.model.entity.News;
@@ -9,8 +8,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +19,10 @@ import java.util.List;
 public class GetNewsListUtil {
 
     public static List<News> fetchUrlContent(String url, List<News> newsList){
+        // 创建日期格式化对象，用于解析输入日期字符串
+        SimpleDateFormat inputFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+        // 创建日期格式化对象，用于格式化输出日期字符串
+        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
             Document document = Jsoup.connect(url).get();
             Elements itemList = document.select("item");

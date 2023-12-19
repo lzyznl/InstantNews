@@ -1,8 +1,10 @@
 package com.lzy.serverproject.Service;
 
 
+import com.lzy.serverproject.model.dto.SearchNewsRequest;
 import com.lzy.serverproject.model.vo.ExplicitNewsContentVo;
 import com.lzy.serverproject.model.vo.NewsDataVo;
+import com.lzy.serverproject.model.vo.SearchNewsVo;
 import com.lzy.serverproject.model.vo.getNewsVo;
 
 public interface NewsService {
@@ -33,4 +35,11 @@ public interface NewsService {
      * @return
      */
     ExplicitNewsContentVo getExplicitNewsContent(Integer newsType, String newsTime, Integer newsId);
+
+    /**
+     * 根据关键词查询新闻
+     * @param searchNewsRequest
+     * @return
+     */
+    SearchNewsVo searchNews(SearchNewsRequest searchNewsRequest);
 }

@@ -41,7 +41,7 @@ public class GetAndSaveNews {
     private DayNewsNumMapper dayNewsNumMapper;
 
 
-//    @Scheduled(fixedRate = 7 * 60 * 1000)
+//    @Scheduled(fixedRate = 3 * 60 * 1000)
     public void task() {
         System.out.println("开始执行定时任务");
         Map<String, String> urlMap = UrlMapUtil.urlMap();
@@ -64,6 +64,7 @@ public class GetAndSaveNews {
                 //存储list中的内容
                 SaveNewsListUtil.save(japaneseNewsContentList, false, newsType);
                 //向数据库中进行存储
+                System.out.println("hahaha");
                 Boolean fact = insertIntoDataBase(newsType, japaneseNewsContentList.size());
                 if(!fact){
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR,"存储新闻数量到数据库异常");
@@ -75,13 +76,14 @@ public class GetAndSaveNews {
                 for(int i=0;i<japaneseNewsContentList.size();++i){
                     News news = japaneseNewsContentList.get(i);
                     int flag=0;
-                    for(int j=0;j<preChineseNewsList.size();++j){
-                        News value = preChineseNewsList.get(j);
+                    for(int j=0;j<preJapaneseNewsList.size();++j){
+                        News value = preJapaneseNewsList.get(j);
                         if (news.getNewsTitle().equals(value.getNewsTitle())) {
                             flag=1;
+                            break;
                         }
                     }
-                    if(flag==1){
+                    if(flag==0){
                         SaveJapaneseNewsList.add(news);
                     }
                 }
@@ -97,13 +99,16 @@ public class GetAndSaveNews {
                 if(startId==-1){
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR,"新闻编号设置错误");
                 }
-                SaveJapaneseNewsList = setListNewsId(SaveJapaneseNewsList,startId);
-                //存储list中的内容
-                SaveNewsListUtil.save(SaveJapaneseNewsList, false, newsType);
-                //向数据库中进行存储
-                Boolean fact = insertIntoDataBase(newsType, SaveJapaneseNewsList.size());
-                if(!fact){
-                    throw new BusinessException(ErrorCode.SYSTEM_ERROR,"存储新闻数量到数据库异常");
+                if(SaveJapaneseNewsList.size()!=0){
+                    System.out.println("hhhhhh");
+                    SaveJapaneseNewsList = setListNewsId(SaveJapaneseNewsList,startId);
+                    //存储list中的内容
+                    SaveNewsListUtil.save(SaveJapaneseNewsList, false, newsType);
+                    //向数据库中进行存储
+                    Boolean fact = insertIntoDataBase(newsType, SaveJapaneseNewsList.size());
+                    if(!fact){
+                        throw new BusinessException(ErrorCode.SYSTEM_ERROR,"存储新闻数量到数据库异常");
+                    }
                 }
             }
             System.out.println("爬取并存储中文以及日文新闻结束");

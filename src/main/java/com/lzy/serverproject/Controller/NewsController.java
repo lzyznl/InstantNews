@@ -1,23 +1,29 @@
 package com.lzy.serverproject.Controller;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
 import com.lzy.serverproject.Service.NewsService;
 import com.lzy.serverproject.Service.TranslateNewsService;
 import com.lzy.serverproject.common.BaseResponse;
 import com.lzy.serverproject.common.ErrorCode;
 import com.lzy.serverproject.common.ResultUtils;
+import com.lzy.serverproject.constant.NewsFileConstant;
 import com.lzy.serverproject.exception.BusinessException;
 import com.lzy.serverproject.model.dto.GetDifferentNewsTypeRequest;
 import com.lzy.serverproject.model.dto.GetExplicitNewsContentRequest;
+import com.lzy.serverproject.model.dto.SearchNewsRequest;
 import com.lzy.serverproject.model.dto.TranslateNewsRequest;
-import com.lzy.serverproject.model.vo.ExplicitNewsContentVo;
-import com.lzy.serverproject.model.vo.NewsDataVo;
-import com.lzy.serverproject.model.vo.TranslatedNewsVo;
-import com.lzy.serverproject.model.vo.getNewsVo;
+import com.lzy.serverproject.model.vo.*;
 import com.lzy.serverproject.utils.common.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
+import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 新闻接口
@@ -92,6 +98,11 @@ public class NewsController {
     }
 
 
+    /**
+     * 查看某个新闻的具体内容
+     * @param getExplicitNewsContentRequest
+     * @return
+     */
     @PostMapping("/get")
     public BaseResponse<ExplicitNewsContentVo> getExplicitNewsContent(@RequestBody GetExplicitNewsContentRequest getExplicitNewsContentRequest){
         String newsTime = getExplicitNewsContentRequest.getNewsTime();
@@ -108,5 +119,62 @@ public class NewsController {
         }
         ExplicitNewsContentVo explicitNewsContent = newsService.getExplicitNewsContent(newsType, newsTime, newsId);
         return ResultUtils.success(explicitNewsContent);
+    }
+
+    /**
+     * 根据关键词查询新闻
+     * @param searchNewsRequest
+     * @return
+     */
+    @PostMapping("/searchNews")
+    public  BaseResponse<SearchNewsVo> searchNews(@RequestBody SearchNewsRequest searchNewsRequest){
+        SearchNewsVo searchNewsVo = newsService.searchNews(searchNewsRequest);
+        return ResultUtils.success(searchNewsVo);
+    }
+
+    /**
+     * 获取新闻数据开始时间和结束时间
+     * @return
+     */
+    @GetMapping("/date")
+    public BaseResponse<DateTimeVo> getDate(){
+        DateTimeVo dateTimeVo = new DateTimeVo();
+        String path = System.getProperty("user.dir");
+        String filePath = path+ File.separator+ NewsFileConstant.TotalNewsFileDir+File.separator
+                +NewsFileConstant.JapaneseNewsFileDir+File.separator
+                +NewsFileConstant.NewsType_LIVE;
+        List<File> fileList = FileUtil.loopFiles(filePath);
+        if (!fileList.isEmpty()) {
+            Date earliestDate = null;
+            Date latestDate = null;
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            for (File file : fileList) {
+                String fileName = file.getName();
+                String dateString = StrUtil.subBefore(fileName, ".", true);
+
+                try {
+                    Date fileDate = dateFormat.parse(dateString);
+
+                    if (earliestDate == null || fileDate.before(earliestDate)) {
+                        earliestDate = fileDate;
+                    }
+
+                    if (latestDate == null || fileDate.after(latestDate)) {
+                        latestDate = fileDate;
+                    }
+
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (earliestDate != null && latestDate != null) {
+                dateTimeVo.setStartTime(dateFormat.format(earliestDate));
+                dateTimeVo.setEndTime(dateFormat.format(latestDate));
+            }
+        }
+        return ResultUtils.success(dateTimeVo);
     }
 }

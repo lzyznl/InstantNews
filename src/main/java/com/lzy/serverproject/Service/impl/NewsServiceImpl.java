@@ -1,19 +1,26 @@
 package com.lzy.serverproject.Service.impl;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
 import com.lzy.serverproject.Service.NewsService;
+import com.lzy.serverproject.common.ErrorCode;
 import com.lzy.serverproject.constant.NewsConstant;
 import com.lzy.serverproject.constant.NewsFileConstant;
+import com.lzy.serverproject.exception.BusinessException;
 import com.lzy.serverproject.mapper.DayNewsNumMapper;
+import com.lzy.serverproject.model.dto.SearchNewsRequest;
 import com.lzy.serverproject.model.entity.DayNewsNum;
 import com.lzy.serverproject.model.entity.News;
 import com.lzy.serverproject.model.enums.newsTypeEnum;
 import com.lzy.serverproject.model.vo.*;
 import com.lzy.serverproject.utils.UrlMapUtil;
 import com.lzy.serverproject.utils.common.CommonUtils;
+import com.lzy.serverproject.utils.translate.TranslateUtil;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -37,7 +44,7 @@ public class NewsServiceImpl implements NewsService {
      */
     @Override
     public getNewsVo getNews(int newsType, int newsLange, String newsTime, int initSize, int addSize, int currentNewsNum) {
-        List<News> newsList = new ArrayList<>();
+        List<NewsVo> newsList = new ArrayList<>();
         newsTypeEnum newsEnum = newsTypeEnum.getEnumByValue(newsType);
         getNewsVo getNewsVo = new getNewsVo();
         if(newsEnum==null){
@@ -61,11 +68,7 @@ public class NewsServiceImpl implements NewsService {
         }
         //读取该文件中的所有内容
         List<News> newsLists = CommonUtils.readJsonFile(path);
-        //处理新闻数据，不要全部返回
-        for (News news:newsLists){
-            news.setNewsContent(news.getNewsContent().substring(0, NewsConstant.NEWS_CONTENT_LENGTH)+"......");
-        }
-        //处理读取到的数据然后进行返回
+        //处理读取到的数据
         List<News> subList = null;
         if(initSize!=0){
             //初次加载
@@ -74,8 +77,39 @@ public class NewsServiceImpl implements NewsService {
             //动态加载
             subList = getSubList(newsLists,(currentNewsNum-1),addSize);
         }
-        getNewsVo.setNewsList(subList);
-        getNewsVo.setNewsSize(subList.size());
+        List<NewsVo> newsVoList = new ArrayList<>();
+        StringBuilder stringBuilder = new StringBuilder();
+        //处理新闻数据，不要全部返回
+        for(int i=0;i<subList.size();++i){
+            NewsVo newsVo = new NewsVo();
+            News news = newsLists.get(i);
+            String title = news.getNewsTitle();
+            String content = news.getNewsContent();
+            if(content.length()>NewsConstant.NEWS_CONTENT_LENGTH){
+                news.setNewsContent(news.getNewsContent().substring(0,NewsConstant.NEWS_CONTENT_LENGTH));
+            }
+            newsVo.setNewsId(news.getNewsId());
+            newsVo.setNewsTitle(news.getNewsTitle());
+            newsVo.setNewsContent(news.getNewsContent());
+            newsVo.setNewsTime(news.getNewsTime());
+            newsVo.setNewsLink(news.getNewsLink());
+            newsVo.setNewsImage(news.getNewsImage());
+            newsVoList.add(newsVo);
+            if(i!=subList.size()-1){
+                stringBuilder.append(title).append("\n").append(news.getNewsContent()).append("\n");
+            }else{
+                stringBuilder.append(title).append("\n").append(news.getNewsContent());
+            }
+        }
+        String translated = stringBuilder.toString();
+        List<String> translatedList = TranslateUtil.batchTranslate(translated);
+        for(int i=0;i<newsVoList.size();i++){
+            NewsVo newsVo = newsVoList.get(i);
+            newsVo.setNewsChineseTitle(translatedList.get(2*i));
+            newsVo.setNewsChineseContent(translatedList.get(2*i+1));
+        }
+        getNewsVo.setNewsList(newsVoList);
+        getNewsVo.setNewsSize(newsVoList.size());
         return getNewsVo;
     }
 
@@ -173,6 +207,120 @@ public class NewsServiceImpl implements NewsService {
             explicitNewsContentVo.setNewsTime(news.getNewsTime());
         }
         return explicitNewsContentVo;
+    }
+
+    @Override
+    public SearchNewsVo searchNews(SearchNewsRequest searchNewsRequest) {
+
+        //存储查询好的新闻数据
+        List<News> newsList = new ArrayList<>();
+        List<News> cleanedNewsList = new ArrayList<>();
+        SearchNewsVo searchNewsVo = new SearchNewsVo();
+        Integer newsType = searchNewsRequest.getNewsType();
+        String title = searchNewsRequest.getTitle();
+        String content = searchNewsRequest.getContent();
+        String startTime = searchNewsRequest.getStartTime();
+        String endTime = searchNewsRequest.getEndTime();
+        Integer isAll = searchNewsRequest.getIsAll();
+
+        newsTypeEnum enumByValue = newsTypeEnum.getEnumByValue(newsType);
+        if(enumByValue==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String type = enumByValue.getText();
+
+        boolean isExplicitSearchTime = false;
+
+        if(startTime!=null&&endTime!=null){
+            if((!startTime.equals(""))&&(!endTime.equals(""))){
+                if(!CommonUtils.isValidDateFormat(startTime)||!CommonUtils.isValidDateFormat(endTime)){
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR,"搜索时间参数错误");
+                }else{
+                    isExplicitSearchTime = true;
+                }
+            }else if(startTime.equals("")&&endTime.equals("")){
+                //此处不用做处理
+            }else{
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,"搜索时间参数错误");
+            }
+        }
+        String path = System.getProperty("user.dir");
+        String dirPath = path+File.separator+NewsFileConstant.TotalNewsFileDir+File.separator
+                +NewsFileConstant.JapaneseNewsFileDir+File.separator
+                +type+File.separator;
+        //将所有需要的全量数据加载到内存中
+        if(!isExplicitSearchTime){
+            String systemTime = CommonUtils.getSystemTime();
+            String preStrTime = systemTime.substring(0, 7);
+            int day = Integer.parseInt(systemTime.substring(8));
+            List<File> files = FileUtil.loopFiles(dirPath);
+            if(files.size()<3){
+                for(File file:files){
+                    List<News> news = CommonUtils.readJsonFile(dirPath + file.getName());
+                    newsList.addAll(news);
+                }
+            }else{
+                //寻找三天的数据
+                for(int i=0;i<3;++i){
+                    String timePath = preStrTime+String.valueOf(day-i)+".json";
+                    for(File file:files){
+                        if(file.getName().equals(timePath)){
+                            //读取数据
+                            List<News> news = CommonUtils.readJsonFile(dirPath + timePath);
+                            newsList.addAll(news);
+                        }
+                    }
+                }
+            }
+        }else{
+            //根据给定的时间进行搜索
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date StartTime = dateFormat.parse(startTime);
+                Date EndTime = dateFormat.parse(endTime);
+                List<File> files = FileUtil.loopFiles(dirPath);
+                for (File file : files) {
+                    // 提取文件名中的日期部分
+                    String fileName = file.getName();
+                    String dateString = StrUtil.subBefore(fileName, ".", true);
+
+                    // 解析日期
+                    Date fileDate = dateFormat.parse(dateString);
+
+                    // 检查文件日期是否在指定范围内
+                    if ((fileDate.equals(StartTime) || fileDate.after(StartTime)) && (fileDate.equals(EndTime) || fileDate.before(EndTime))) {
+                        List<News> news = CommonUtils.readJsonFile(dirPath+fileName);
+                        newsList.addAll(news);
+                    }
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        boolean searchContent = (content!=null&&!content.equals(""));
+        boolean searchTitle = (title!=null&&!title.equals(""));
+        //将加载到内存中的全量数据进行数据筛选
+        for (News news : newsList){
+            String newsTitle = news.getNewsTitle();
+            String newsContent = news.getNewsContent();
+            if(searchContent&&!searchTitle){
+                //只从新闻内容进行筛选
+                if (newsContent.contains(content)){
+                    cleanedNewsList.add(news);
+                }
+            }else if(searchTitle&&!searchContent){
+                if(newsTitle.contains(title)){
+                    cleanedNewsList.add(news);
+                }
+            }else if(searchContent&&searchTitle){
+                if(newsContent.contains(content)&&newsTitle.contains(title)){
+                    cleanedNewsList.add(news);
+                }
+            }
+        }
+        newsList.clear();
+        searchNewsVo.setNewsList(cleanedNewsList);
+        return searchNewsVo;
     }
 
 

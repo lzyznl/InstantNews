@@ -3,6 +3,7 @@ package com.lzy.serverproject.utils.translate;
 import com.google.gson.Gson;
 import com.lzy.serverproject.constant.NewsConstant;
 import com.lzy.serverproject.model.entity.News;
+import com.lzy.serverproject.model.translate.trans_result;
 import com.lzy.serverproject.model.translate.translateResult;
 
 import java.util.ArrayList;
@@ -20,6 +21,18 @@ public class TranslateUtil {
         Gson gson = new Gson();
         translateResult translateResult = gson.fromJson(transResult, translateResult.class);
         return translateResult.getTrans_result()[0].getDst();
+    }
+
+    public static List<String> batchTranslate(String query){
+        List<String> list = new ArrayList<>();
+        String transResult = transApi.getTransResult(query, NewsConstant.from_lg, NewsConstant.to_lg);
+        Gson gson = new Gson();
+        translateResult translateResult = gson.fromJson(transResult, translateResult.class);
+        trans_result[] trans_result = translateResult.getTrans_result();
+        for(int i=0;i<trans_result.length;++i){
+            list.add(trans_result[i].getDst());
+        }
+        return list;
     }
 
     /**

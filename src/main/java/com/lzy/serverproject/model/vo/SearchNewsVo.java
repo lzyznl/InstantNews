@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class getNewsVo {
-    private List<NewsVo> newsList;
-    private int newsSize;
+public class SearchNewsVo {
+    private List<News> newsList;
+    private String newsTime;
 }
