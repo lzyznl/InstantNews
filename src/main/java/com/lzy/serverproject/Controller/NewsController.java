@@ -47,7 +47,7 @@ public class NewsController {
      * @param getDifferentNewsTypeRequest
      * @return
      */
-    @PostMapping
+    @PostMapping("/getDifferentTypeNews")
     public BaseResponse<getNewsVo> getDifferentTypeNews(@RequestBody GetDifferentNewsTypeRequest getDifferentNewsTypeRequest){
         int newsType = getDifferentNewsTypeRequest.getNewsType();
         int newsLange = getDifferentNewsTypeRequest.getNewsLange();

@@ -7,6 +7,6 @@ import java.util.List;
 
 @Data
 public class SearchNewsVo {
-    private List<News> newsList;
+    private List<NewsVo> newsList;
     private String newsTime;
 }

@@ -22,8 +22,8 @@ public interface NewsConstant {
     /**
      * 百度翻译相关参数设置
      */
-    String appId = "202310090018419597";
-    String appKey = "RRqR2QPLbfN33Em6rtCx7";
+    String appId = "7202310090018419597";
+    String appKey = "7RRqR2QPLbfN33Em6rtCx7";
     String from_lg = "jp";
     String to_lg = "zh";
 }

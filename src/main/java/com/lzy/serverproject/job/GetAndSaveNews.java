@@ -2,9 +2,11 @@ package com.lzy.serverproject.job;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.lzy.serverproject.AI.BigModelNew;
 import com.lzy.serverproject.SMS.SendSms;
 import com.lzy.serverproject.Service.DayNewsNumService;
 import com.lzy.serverproject.common.ErrorCode;
+import com.lzy.serverproject.constant.AIConstant;
 import com.lzy.serverproject.constant.NewsFileConstant;
 import com.lzy.serverproject.exception.BusinessException;
 import com.lzy.serverproject.mapper.DayNewsNumMapper;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * 获取新闻并且存储到文本当中
@@ -51,7 +54,7 @@ public class GetAndSaveNews {
     private SubscribeMapper subscribeMapper;
 
 
-//    @Scheduled(fixedRate = 3 * 60 * 1000)
+//    @Scheduled(fixedRate = 7 * 60 * 1000)
     public void task() {
         System.out.println("开始执行定时任务");
         Map<String, String> urlMap = UrlMapUtil.urlMap();

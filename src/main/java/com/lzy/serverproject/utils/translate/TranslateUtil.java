@@ -23,6 +23,13 @@ public class TranslateUtil {
         return translateResult.getTrans_result()[0].getDst();
     }
 
+    public static String ChineseToJapanese(String query){
+        String transResult = transApi.getTransResult(query, NewsConstant.to_lg, NewsConstant.from_lg);
+        Gson gson = new Gson();
+        translateResult translateResult = gson.fromJson(transResult, translateResult.class);
+        return translateResult.getTrans_result()[0].getDst();
+    }
+
     public static List<String> batchTranslate(String query){
         List<String> list = new ArrayList<>();
         String transResult = transApi.getTransResult(query, NewsConstant.from_lg, NewsConstant.to_lg);

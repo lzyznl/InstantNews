@@ -223,6 +223,13 @@ public class NewsServiceImpl implements NewsService {
         String endTime = searchNewsRequest.getEndTime();
         Integer isAll = searchNewsRequest.getIsAll();
 
+        if(!content.equals("")){
+            content = TranslateUtil.ChineseToJapanese(content);
+        }
+        if(!title.equals("")){
+            title = TranslateUtil.ChineseToJapanese(title);
+        }
+
         newsTypeEnum enumByValue = newsTypeEnum.getEnumByValue(newsType);
         if(enumByValue==null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -262,9 +269,10 @@ public class NewsServiceImpl implements NewsService {
             }else{
                 //寻找三天的数据
                 for(int i=0;i<3;++i){
-                    String timePath = preStrTime+String.valueOf(day-i)+".json";
+                    String timePath = preStrTime+"-"+String.valueOf(day-i)+".json";
                     for(File file:files){
-                        if(file.getName().equals(timePath)){
+                        String name = dirPath+file.getName();
+                        if((name.equals(dirPath+timePath))){
                             //读取数据
                             List<News> news = CommonUtils.readJsonFile(dirPath + timePath);
                             newsList.addAll(news);
@@ -318,8 +326,34 @@ public class NewsServiceImpl implements NewsService {
                 }
             }
         }
+        List<NewsVo> cleanedNewsVoList = new ArrayList<>();
+        StringBuilder stringBuilder = new StringBuilder();
+        //对返回的文本进行翻译
+        for (int i=0;i<cleanedNewsList.size();++i){
+            News news = cleanedNewsList.get(i);
+            NewsVo newsVo = new NewsVo();
+            newsVo.setNewsId(news.getNewsId());
+            newsVo.setNewsTitle(news.getNewsTitle());
+            newsVo.setNewsContent(news.getNewsContent());
+            newsVo.setNewsTime(news.getNewsTime());
+            newsVo.setNewsLink(news.getNewsLink());
+            newsVo.setNewsImage(news.getNewsImage());
+            cleanedNewsVoList.add(newsVo);
+            if(i!=cleanedNewsList.size()-1){
+                stringBuilder.append(news.getNewsTitle()).append("\n").append(news.getNewsContent()).append("\n");
+            }
+            else{
+                stringBuilder.append(news.getNewsTitle()).append("\n").append(news.getNewsContent());
+            }
+        }
+        String str = stringBuilder.toString();
+        List<String> translateList = TranslateUtil.batchTranslate(str);
+        for(int i=0;i<cleanedNewsVoList.size();++i){
+            cleanedNewsVoList.get(i).setNewsChineseTitle(translateList.get(2*i));
+            cleanedNewsVoList.get(i).setNewsChineseContent(translateList.get(2*i+1));
+        }
         newsList.clear();
-        searchNewsVo.setNewsList(cleanedNewsList);
+        searchNewsVo.setNewsList(cleanedNewsVoList);
         return searchNewsVo;
     }
 
