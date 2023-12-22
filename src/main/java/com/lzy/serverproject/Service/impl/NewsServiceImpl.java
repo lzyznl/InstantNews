@@ -327,6 +327,9 @@ public class NewsServiceImpl implements NewsService {
             }
         }
         List<NewsVo> cleanedNewsVoList = new ArrayList<>();
+        if(cleanedNewsList.size()==0){
+            return searchNewsVo;
+        }
         StringBuilder stringBuilder = new StringBuilder();
         //对返回的文本进行翻译
         for (int i=0;i<cleanedNewsList.size();++i){
