@@ -54,7 +54,7 @@ public class GetAndSaveNews {
     private SubscribeMapper subscribeMapper;
 
 
-//    @Scheduled(fixedRate = 7 * 60 * 1000)
+    @Scheduled(fixedRate = 3 * 60 * 1000)
     public void task() {
         System.out.println("开始执行定时任务");
         Map<String, String> urlMap = UrlMapUtil.urlMap();
@@ -72,8 +72,17 @@ public class GetAndSaveNews {
             //爬取日文新闻
             List<News> japaneseNewsContentList = GetNewsContentUtil.getNewsContent(GetNewsListUtil.getJapaneseNewsList(newsUrl), false);
             if (preJapaneseNewsList.size() == 0) {
-                //对新闻进行编号，此处的新闻编号肯定是从0开始
-                japaneseNewsContentList = setListNewsId(japaneseNewsContentList,0);
+                QueryWrapper<DayNewsNum> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("dayTime",CommonUtils.getSystemTime());
+                Long count = dayNewsNumMapper.selectCount(queryWrapper);
+                if(count==0){
+                    //对新闻进行编号，此处的新闻编号肯定是从0开始
+                    japaneseNewsContentList = setListNewsId(japaneseNewsContentList,0);
+                }else{
+                    DayNewsNum dayNewsNum = dayNewsNumMapper.selectOne(queryWrapper);
+                    Integer startId = getExplicitNewsTypeStartId(dayNewsNum, newsType);
+                    japaneseNewsContentList = setListNewsId(japaneseNewsContentList,startId);
+                }
                 //存储list中的内容
                 SaveNewsListUtil.save(japaneseNewsContentList, false, newsType);
                 //向数据库中进行存储
@@ -113,7 +122,7 @@ public class GetAndSaveNews {
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR,"新闻编号设置错误");
                 }
                 if(SaveJapaneseNewsList.size()!=0){
-                    System.out.println("hhhhhh");
+                    System.out.println("此次存储开始编号为"+startId);
                     SaveJapaneseNewsList = setListNewsId(SaveJapaneseNewsList,startId);
                     //存储list中的内容
                     SaveNewsListUtil.save(SaveJapaneseNewsList, false, newsType);
@@ -129,44 +138,6 @@ public class GetAndSaveNews {
         System.out.println("一次定时任务现在全部结束");
     }
 
-    public void sendMessage(){
-        String systemTime = CommonUtils.getSystemTime();
-        //构造文件路径
-        String path = System.getProperty("user.dir");
-        String DirPath = path+ File.separator+NewsFileConstant.TotalNewsFileDir+File.separator
-                +NewsFileConstant.JapaneseNewsFileDir+File.separator;
-        List<Subscribe> subscribes = subscribeMapper.selectList(null);
-        StringBuilder stringBuilder = new StringBuilder();
-        //遍历每一个订阅信息，向用户推送对应类型的新闻
-        for(Subscribe subscribe:subscribes) {
-            String phoneNumber = subscribe.getPhoneNumber();
-            Integer day = subscribe.getDay();
-            Integer newsType = subscribe.getNewsType();
-            //获取新闻类型
-            newsTypeEnum enumByValue = newsTypeEnum.getEnumByValue(newsType);
-            if(enumByValue==null){
-                throw new BusinessException(ErrorCode.PARAMS_ERROR);
-            }
-            String type = enumByValue.getText();
-            String finalPath = DirPath+type+File.separator+(systemTime+".json");
-            List<News> newsList = CommonUtils.readJsonFile(finalPath);
-            for(int i=0;i<10;++i){
-                if(i!=9){
-                    stringBuilder.append(newsList.get(i).getNewsTitle()).append("\n");
-                }else{
-                    stringBuilder.append(newsList.get(i).getNewsTitle());
-                }
-            }
-            //进行标题翻译
-            String titleStr = stringBuilder.toString();
-            List<String> translatedTitle = TranslateUtil.batchTranslate(titleStr);
-            //调用发送短信服务
-            String[] translateTitleArray = (String[]) translatedTitle.toArray();
-            String[] phoneNumberSet = new String[1];
-            phoneNumberSet[0]=phoneNumber;
-            SendSms.send(translateTitleArray,phoneNumberSet);
-        }
-    }
     
     public List<News> setListNewsId(List<News> newsList,int start){
         for(int i=0;i<newsList.size();++i){
@@ -181,22 +152,33 @@ public class GetAndSaveNews {
         switch (newsType){
             case NewsFileConstant.NewsType_LIVE:
                 startId=dayNewsNum.getLiveNum();
+                break;
             case NewsFileConstant.NewsType_INTERIOR:
                 startId=dayNewsNum.getInteriorNum();
+                break;
             case NewsFileConstant.NewsType_GEO:
                 startId= dayNewsNum.getGeoNum();
+                break;
             case NewsFileConstant.NewsType_INTERNATIONAL:
                 startId=dayNewsNum.getInterNationalNum();
+                break;
             case NewsFileConstant.NewsType_SCIENCE:
                 startId=dayNewsNum.getScienceNum();
+                break;
             case NewsFileConstant.NewsType_ECONOMY:
                 startId=dayNewsNum.getEconomyNum();
+                break;
             case NewsFileConstant.NewsType_PHYSICAL:
                 startId=dayNewsNum.getPhysicalNum();
+                break;
             case NewsFileConstant.NewsType_RECREATION:
                 startId = dayNewsNum.getRecreationNum();
+                break;
             case NewsFileConstant.NewsType_IT:
                 startId = dayNewsNum.getITNum();
+                break;
+            default:
+                break;
         }
         return startId;
     }

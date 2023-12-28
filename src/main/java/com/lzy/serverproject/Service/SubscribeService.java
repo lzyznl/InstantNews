@@ -2,6 +2,7 @@ package com.lzy.serverproject.Service;
 
 import com.lzy.serverproject.model.entity.Subscribe;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lzy.serverproject.model.vo.TypeNumVo;
 
 /**
 * @author 86185
@@ -18,4 +19,10 @@ public interface SubscribeService extends IService<Subscribe> {
      * @return
      */
     Boolean subscribe(String phoneNumber, Integer newsType, Integer subscribe);
+
+    /**
+     * 获取每个栏目的订阅人数
+     * @return
+     */
+    TypeNumVo typeNum();
 }

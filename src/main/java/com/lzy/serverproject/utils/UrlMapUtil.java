@@ -42,4 +42,19 @@ public class UrlMapUtil<T> {
         listMap.put(NewsFileConstant.NewsType_SCIENCE,new ArrayList<>());
         return listMap;
     }
+
+
+    public static Map<String,List<String>> AISummarizedNewsListMap(){
+        Map<String,List<String>> AIContentMap = new HashMap<>();
+        AIContentMap.put(NewsFileConstant.NewsType_ECONOMY,new ArrayList<String>());
+        AIContentMap.put(NewsFileConstant.NewsType_LIVE,new ArrayList<String>());
+        AIContentMap.put(NewsFileConstant.NewsType_IT,new ArrayList<String>());
+        AIContentMap.put(NewsFileConstant.NewsType_INTERIOR,new ArrayList<String>());
+        AIContentMap.put(NewsFileConstant.NewsType_INTERNATIONAL,new ArrayList<String>());
+        AIContentMap.put(NewsFileConstant.NewsType_RECREATION,new ArrayList<String>());
+        AIContentMap.put(NewsFileConstant.NewsType_PHYSICAL,new ArrayList<String>());
+        AIContentMap.put(NewsFileConstant.NewsType_GEO,new ArrayList<String>());
+        AIContentMap.put(NewsFileConstant.NewsType_SCIENCE,new ArrayList<String>());
+        return AIContentMap;
+    }
 }

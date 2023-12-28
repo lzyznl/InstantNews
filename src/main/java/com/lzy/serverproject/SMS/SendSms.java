@@ -1,5 +1,11 @@
 package com.lzy.serverproject.SMS;
+import com.lzy.serverproject.AI.BigModelNew;
+import com.lzy.serverproject.constant.AIConstant;
+import com.lzy.serverproject.constant.NewsFileConstant;
 import com.lzy.serverproject.constant.SMSConstant;
+import com.lzy.serverproject.model.entity.News;
+import com.lzy.serverproject.utils.UrlMapUtil;
+import com.lzy.serverproject.utils.common.CommonUtils;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 //导入可选配置类
@@ -11,8 +17,58 @@ import com.tencentcloudapi.sms.v20210111.SmsClient;
 import com.tencentcloudapi.sms.v20210111.models.SendSmsRequest;
 import com.tencentcloudapi.sms.v20210111.models.SendSmsResponse;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 
 public class SendSms {
+    static Map<String, List<String>> AIContentMap = UrlMapUtil.AISummarizedNewsListMap();
+
+    public static void sendMessage(String newsType,List<String> phoneNumberList){
+        int size = phoneNumberList.size();
+        String[] phoneNumberSet = new String[size];
+        String[] templateParamSet = new String[11];
+        templateParamSet[0]=newsType;
+        //构造手机号数组
+        for(int i=0;i<size;++i){
+            phoneNumberSet[i]="+86"+phoneNumberList.get(i);
+        }
+
+        String systemTime = CommonUtils.getSystemTime();
+        //构造文件路径
+        String path = System.getProperty("user.dir");
+        String finalPath = path+ File.separator+ NewsFileConstant.TotalNewsFileDir+File.separator
+                +NewsFileConstant.JapaneseNewsFileDir+File.separator+newsType+File.separator+(systemTime+".json");
+        //判断全局变量中是否存在
+        List<String> contentList = AIContentMap.get(newsType);
+        if(contentList.size()!=0){
+            for(int i=0;i<contentList.size();++i){
+                templateParamSet[i+1]=contentList.get(i);
+            }
+            send(templateParamSet,phoneNumberSet);
+            return ;
+        }
+        //从文件中进行读取
+        List<News> newsList = CommonUtils.readJsonFile(finalPath);
+        List<String> AIContentList = new ArrayList<>();
+        for(int i=0;i<10;++i){
+            //对每一条新闻进行总结
+            String content = newsList.get(i).getNewsContent();
+            String aiContent = BigModelNew.getAIContent(AIConstant.preStr+content);
+            if(aiContent.length()>AIConstant.AIContentNewsLength){
+                aiContent = aiContent.substring(0,AIConstant.AIContentNewsLength);
+            }
+            templateParamSet[i+1]=aiContent;
+            System.out.println(i+":"+aiContent);
+            AIContentList.add(aiContent);
+        }
+        AIContentMap.replace(newsType,AIContentList);
+        send(templateParamSet,phoneNumberSet);
+    }
+
+
     public static void send(String[] templateParamSet,String[] phoneNumberSet){
         try {
             /* 必要步骤：

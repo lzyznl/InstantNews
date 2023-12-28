@@ -17,6 +17,8 @@ public interface NewsConstant {
     String SCIENCE = "https://news.yahoo.co.jp/rss/categories/science.xml";
     String GEO = "https://news.yahoo.co.jp/rss/categories/local.xml";
 
+    String NewsClassName = ".sc-cTsKDU.iKqGfS.yjSlinkDirectlink.highLightSearchTarget";
+
     Integer NEWS_CONTENT_LENGTH = 70;
 
     /**

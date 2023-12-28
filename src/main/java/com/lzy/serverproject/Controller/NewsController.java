@@ -197,4 +197,10 @@ public class NewsController {
         Boolean fact = subscribeService.subscribe(phoneNumber,newsType,subscribe);
         return ResultUtils.success(fact);
     }
+
+    @GetMapping("/typeNum")
+    public BaseResponse<TypeNumVo> getTypeNum(){
+        TypeNumVo typeNumVo = subscribeService.typeNum();
+        return ResultUtils.success(typeNumVo);
+    }
 }

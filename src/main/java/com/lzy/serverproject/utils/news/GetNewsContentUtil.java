@@ -33,7 +33,7 @@ public class GetNewsContentUtil {
             Document document = null;
             try {
                 document = Jsoup.connect(news.getNewsLink()).timeout(5000).get();
-                String content = document.select(".sc-cTsKDU.iKqGfS.yjSlinkDirectlink.highLightSearchTarget").text();
+                String content = document.select(NewsConstant.NewsClassName).text();
                 if(isTranslate){
                     //需要翻译
                     String transResult = transApi.getTransResult(content, NewsConstant.from_lg, NewsConstant.to_lg);
