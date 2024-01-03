@@ -75,14 +75,19 @@ public class NewsServiceImpl implements NewsService {
             subList = getSubList(newsLists, 0, initSize);
         }else if(addSize!=0&currentNewsNum!=0){
             //动态加载
-            subList = getSubList(newsLists,(currentNewsNum-1),addSize);
+            subList = getSubList(newsLists,currentNewsNum,addSize);
+        }
+        if(subList!=null&&subList.size()==0){
+            getNewsVo.setNewsList(new ArrayList<>());
+            getNewsVo.setNewsSize(0);
+            return getNewsVo;
         }
         List<NewsVo> newsVoList = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         //处理新闻数据，不要全部返回
         for(int i=0;i<subList.size();++i){
             NewsVo newsVo = new NewsVo();
-            News news = newsLists.get(i);
+            News news = subList.get(i);
             String title = news.getNewsTitle();
             String content = news.getNewsContent();
             if(content.length()>NewsConstant.NEWS_CONTENT_LENGTH){
@@ -222,7 +227,8 @@ public class NewsServiceImpl implements NewsService {
         String startTime = searchNewsRequest.getStartTime();
         String endTime = searchNewsRequest.getEndTime();
         Integer isAll = searchNewsRequest.getIsAll();
-
+        String Title = title;
+        String Content = content;
         if(!content.equals("")){
             content = TranslateUtil.ChineseToJapanese(content);
         }
@@ -269,7 +275,7 @@ public class NewsServiceImpl implements NewsService {
             }else{
                 //寻找三天的数据
                 for(int i=0;i<3;++i){
-                    String timePath = preStrTime+"-"+String.valueOf(day-i)+".json";
+                    String timePath = preStrTime+"-"+String.format("%02d", day - i)+".json";
                     for(File file:files){
                         String name = dirPath+file.getName();
                         if((name.equals(dirPath+timePath))){
@@ -313,15 +319,15 @@ public class NewsServiceImpl implements NewsService {
             String newsContent = news.getNewsContent();
             if(searchContent&&!searchTitle){
                 //只从新闻内容进行筛选
-                if (newsContent.contains(content)){
+                if (newsContent.contains(content)||newsContent.contains(Content)){
                     cleanedNewsList.add(news);
                 }
             }else if(searchTitle&&!searchContent){
-                if(newsTitle.contains(title)){
+                if(newsTitle.contains(title)||newsTitle.contains(Title)){
                     cleanedNewsList.add(news);
                 }
             }else if(searchContent&&searchTitle){
-                if(newsContent.contains(content)&&newsTitle.contains(title)){
+                if((newsContent.contains(content)&&newsTitle.contains(title))||(newsContent.contains(Content)&&newsTitle.contains(Title))){
                     cleanedNewsList.add(news);
                 }
             }
@@ -332,7 +338,7 @@ public class NewsServiceImpl implements NewsService {
         }
         StringBuilder stringBuilder = new StringBuilder();
         //对返回的文本进行翻译
-        for (int i=0;i<cleanedNewsList.size();++i){
+        for (int i=0;i<Math.min(cleanedNewsList.size(),50);++i){
             News news = cleanedNewsList.get(i);
             NewsVo newsVo = new NewsVo();
             newsVo.setNewsId(news.getNewsId());
@@ -342,11 +348,19 @@ public class NewsServiceImpl implements NewsService {
             newsVo.setNewsLink(news.getNewsLink());
             newsVo.setNewsImage(news.getNewsImage());
             cleanedNewsVoList.add(newsVo);
-            if(i!=cleanedNewsList.size()-1){
-                stringBuilder.append(news.getNewsTitle()).append("\n").append(news.getNewsContent()).append("\n");
+            if(i!=Math.min(cleanedNewsList.size(),50)-1){
+                if(news.getNewsContent().length()>NewsConstant.NEWS_CONTENT_LENGTH) {
+                    stringBuilder.append(news.getNewsTitle()).append("\n").append(news.getNewsContent(), 0, NewsConstant.NEWS_CONTENT_LENGTH).append("\n");
+                }else{
+                    stringBuilder.append(news.getNewsTitle()).append("\n").append(news.getNewsContent()).append("\n");
+                }
             }
             else{
-                stringBuilder.append(news.getNewsTitle()).append("\n").append(news.getNewsContent());
+                if(news.getNewsContent().length()>NewsConstant.NEWS_CONTENT_LENGTH) {
+                    stringBuilder.append(news.getNewsTitle()).append("\n").append(news.getNewsContent(), 0, NewsConstant.NEWS_CONTENT_LENGTH);
+                }else{
+                    stringBuilder.append(news.getNewsTitle()).append("\n").append(news.getNewsContent());
+                }
             }
         }
         String str = stringBuilder.toString();
@@ -439,7 +453,7 @@ public class NewsServiceImpl implements NewsService {
     public static List<News> getSubList(List<News> originalList, int start,int num) {
         // 检查开始位置是否有效
         if (start < 0 || start >= originalList.size()) {
-            throw new IllegalArgumentException("Invalid start position");
+            return new ArrayList<>();
         }
 
         // 计算结束位置

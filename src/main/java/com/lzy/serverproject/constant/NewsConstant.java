@@ -19,9 +19,10 @@ public interface NewsConstant {
 
     String NewsClassName = ".sc-cTsKDU.iKqGfS.yjSlinkDirectlink.highLightSearchTarget";
 
-    Integer NEWS_CONTENT_LENGTH = 70;
+    Integer NEWS_CONTENT_LENGTH = 50;
 
     /**
      * 百度翻译相关参数设置
      */
+
 }

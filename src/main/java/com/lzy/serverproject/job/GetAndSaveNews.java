@@ -2,37 +2,29 @@ package com.lzy.serverproject.job;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.lzy.serverproject.AI.BigModelNew;
-import com.lzy.serverproject.SMS.SendSms;
 import com.lzy.serverproject.Service.DayNewsNumService;
 import com.lzy.serverproject.common.ErrorCode;
-import com.lzy.serverproject.constant.AIConstant;
 import com.lzy.serverproject.constant.NewsFileConstant;
 import com.lzy.serverproject.exception.BusinessException;
 import com.lzy.serverproject.mapper.DayNewsNumMapper;
 import com.lzy.serverproject.mapper.SubscribeMapper;
 import com.lzy.serverproject.model.entity.DayNewsNum;
 import com.lzy.serverproject.model.entity.News;
-import com.lzy.serverproject.model.entity.Subscribe;
-import com.lzy.serverproject.model.enums.newsTypeEnum;
 import com.lzy.serverproject.utils.*;
 import com.lzy.serverproject.utils.common.CommonUtils;
 import com.lzy.serverproject.utils.news.GetNewsContentUtil;
 import com.lzy.serverproject.utils.news.GetNewsListUtil;
 import com.lzy.serverproject.utils.news.NewsThreadProcessor;
 import com.lzy.serverproject.utils.news.SaveNewsListUtil;
-import com.lzy.serverproject.utils.translate.TranslateUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
+
 
 /**
  * 获取新闻并且存储到文本当中
@@ -54,7 +46,7 @@ public class GetAndSaveNews {
     private SubscribeMapper subscribeMapper;
 
 
-    @Scheduled(fixedRate = 3 * 60 * 1000)
+    @Scheduled(fixedRate = 3 * 60 * 1000, initialDelay = 3 * 60 * 1000)
     public void task() {
         System.out.println("开始执行定时任务");
         Map<String, String> urlMap = UrlMapUtil.urlMap();
@@ -117,6 +109,13 @@ public class GetAndSaveNews {
                 QueryWrapper<DayNewsNum> queryWrapper = new QueryWrapper<>();
                 queryWrapper.eq("dayTime",systemTime);
                 DayNewsNum dayNewsNum = dayNewsNumMapper.selectOne(queryWrapper);
+                if(dayNewsNum==null){
+                    //需要创建新的记录
+                    DayNewsNum dayNewsNum1 = new DayNewsNum();
+                    dayNewsNum1.setDayTime(systemTime);
+                    dayNewsNumMapper.insert(dayNewsNum1);
+                    dayNewsNum=dayNewsNum1;
+                }
                 Integer startId = getExplicitNewsTypeStartId(dayNewsNum, newsType);
                 if(startId==-1){
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR,"新闻编号设置错误");

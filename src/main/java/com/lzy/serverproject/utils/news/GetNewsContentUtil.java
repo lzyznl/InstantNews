@@ -34,15 +34,19 @@ public class GetNewsContentUtil {
             try {
                 document = Jsoup.connect(news.getNewsLink()).timeout(5000).get();
                 String content = document.select(NewsConstant.NewsClassName).text();
-                if(isTranslate){
-                    //需要翻译
-                    String transResult = transApi.getTransResult(content, NewsConstant.from_lg, NewsConstant.to_lg);
-                    Gson gson = new Gson();
-                    translateResult translateResult = gson.fromJson(transResult, translateResult.class);
-                    news.setNewsContent(translateResult.getTrans_result()[0].getDst());
+                if(!content.equals("")){
+                    if(isTranslate){
+                        //需要翻译
+                        String transResult = transApi.getTransResult(content, NewsConstant.from_lg, NewsConstant.to_lg);
+                        Gson gson = new Gson();
+                        translateResult translateResult = gson.fromJson(transResult, translateResult.class);
+                        news.setNewsContent(translateResult.getTrans_result()[0].getDst());
+                    }else{
+                        //不需要翻译
+                        news.setNewsContent(content);
+                    }
                 }else{
-                    //不需要翻译
-                    news.setNewsContent(content);
+                    news.setNewsContent(news.getNewsTitle());
                 }
             } catch (IOException e) {
                 e.printStackTrace();
