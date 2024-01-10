@@ -30,6 +30,7 @@ public class GetNewsContentUtil {
         }
         TransApi transApi = new TransApi(NewsConstant.appId,NewsConstant.appKey);
         newsList.forEach(news->{
+//            news.setNewsContent(news.getNewsTitle());
             Document document = null;
             try {
                 document = Jsoup.connect(news.getNewsLink()).timeout(5000).get();

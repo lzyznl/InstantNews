@@ -318,17 +318,23 @@ public class NewsServiceImpl implements NewsService {
             String newsTitle = news.getNewsTitle();
             String newsContent = news.getNewsContent();
             if(searchContent&&!searchTitle){
-                //只从新闻内容进行筛选
-                if (newsContent.contains(content)||newsContent.contains(Content)){
-                    cleanedNewsList.add(news);
+                if (newsContent!=null){
+                    //只从新闻内容进行筛选
+                    if (newsContent.contains(content)||newsContent.contains(Content)){
+                        cleanedNewsList.add(news);
+                    }
                 }
             }else if(searchTitle&&!searchContent){
-                if(newsTitle.contains(title)||newsTitle.contains(Title)){
-                    cleanedNewsList.add(news);
+                if(newsTitle!=null){
+                    if(newsTitle.contains(title)||newsTitle.contains(Title)){
+                        cleanedNewsList.add(news);
+                    }
                 }
             }else if(searchContent&&searchTitle){
-                if((newsContent.contains(content)&&newsTitle.contains(title))||(newsContent.contains(Content)&&newsTitle.contains(Title))){
-                    cleanedNewsList.add(news);
+                if(newsContent!=null&&newsTitle!=null){
+                    if((newsContent.contains(content)&&newsTitle.contains(title))||(newsContent.contains(Content)&&newsTitle.contains(Title))){
+                        cleanedNewsList.add(news);
+                    }
                 }
             }
         }
