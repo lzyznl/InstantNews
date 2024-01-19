@@ -23,6 +23,7 @@ import java.util.Map;
 /**
  * 定时总结最新新闻内容发送给用户
  * @author lzy
+ * @date 2024-01-19
  */
 public class AIJob {
 
